@@ -2,6 +2,12 @@ import tkinter
 import tkintermapview
 import math
 
+#this gets the users screen size, so the map is the same ratio size
+import ctypes
+user32 = ctypes.windll.user32
+screensizex = str(user32.GetSystemMetrics(0))
+screensizey = str(user32.GetSystemMetrics(1))
+screensize = screensizex+"x"+screensizey
 
 class App(tkinter.Tk):
     def __init__(self):
@@ -11,7 +17,7 @@ class App(tkinter.Tk):
 
         #configuring the window
         self.title("Nuclear fallout Simulator")
-        self.geometry("2256x1504")
+        self.geometry(screensize)
 
         #setting up label for explosive value input prompt
         self.explosive_value_label = tkinter.Label(text="Enter your explosive value, in kilotones, between 1t(0.01) and 100Mt(100,000Kt) equivilant")
@@ -31,7 +37,7 @@ class App(tkinter.Tk):
         self.explosive_value_submit_button.grid(row=2, column = 0)
         
         #this is setting up the initial values for the map in this program.
-        self.the_map = tkintermapview.TkinterMapView(self, width=1600, height=1000, corner_radius=0)
+        self.the_map = tkintermapview.TkinterMapView(self, width=int(screensizex)*3/4, height=int(screensizey)*8/10, corner_radius=0)
         self.the_map.place(relx=0.5, rely=0.5, anchor=tkinter.CENTER)
         self.the_map.set_position(51.51279, -0.09184)
         self.the_map.set_zoom(12)
