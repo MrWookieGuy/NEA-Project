@@ -33,7 +33,7 @@ class App(tkinter.Tk):
         self.explosive_value_submittion.grid(row = 1,column = 0)
 
         #setting up exposive value submit button
-        self.explosive_value_submit_button = tkinter.Button(self, text="Submit", command = validate_data.validate(self,self.explosive_value_submittion))
+        self.explosive_value_submit_button = tkinter.Button(self, text="Submit", command = lambda:validate_data.validate(self,self.explosive_value_submittion))
         self.explosive_value_submit_button.grid(row=2, column = 0)
         
         #this is setting up the initial values for the map in this program.
@@ -57,7 +57,7 @@ class validate_data(App):
         super().__init__()
 
         
-    def is_float(self,explosion):
+    def is_float(explosion):
        try:
            float(explosion)
            return True
@@ -68,27 +68,30 @@ class validate_data(App):
     def validate(self,explosive_value_submittion):
         explosion = explosive_value_submittion.get()
         if len(explosion) < 20:
-                if validate_data.is_float(self,explosion) == True or explosion.isnumeric() == True:
+                if validate_data.is_float(explosion) == True or explosion.isnumeric() == True:
                     explosion = float(explosion)
                     if explosion>= 0.01 and explosion <= 1000000.0:
-                        self.report_label_explosive_input_validity = tkinter.Label("Valid input")
-                        self.report_label_explosive_input_validity.grid(row=3,column=0)
+                        report_label_explosive_input_validity = tkinter.Label(text="Valid input")
+                        report_label_explosive_input_validity.grid(row=3,column=0)
+                        radius_of_explosion = str(radius_of_Explosion.calculate_radius(self))
+                        radius_report_label = tkinter.Label(text = radius_of_explosion+"m")
+                        radius_report_label.grid(row=3,column=1)
                     else:
-                        self.report_label_explosive_input_validity = tkinter.Label(text="Invalid input, please enter a number in the range.", fg = "red")
-                        self.report_label_explosive_input_validity.grid(row = 3, column = 0)
+                        report_label_explosive_input_validity = tkinter.Label(text="Invalid input, please enter a number in the range.", fg = "red")
+                        report_label_explosive_input_validity.grid(row = 3, column = 0)
                 else:
-                     self.report_label_explosive_input_validity = tkinter.Label(text="Invalid input, please enter a number.", fg = "red")
-                     self.report_label_explosive_input_validity.grid(row = 3, column = 0)
+                     report_label_explosive_input_validity = tkinter.Label(text="Invalid input, please enter a number.", fg = "red")
+                     report_label_explosive_input_validity.grid(row = 3, column = 0)
         else:
-             self.report_label_explosive_input_validity = tkinter.Label(text="Invalid input, please enter a number between less than 20 characters long.", fg = "red")
-             self.report_callback_exception.grid(row = 3, column = 0)
+             report_label_explosive_input_validity = tkinter.Label(text="Invalid input, please enter a number between less than 20 characters long.", fg = "red")
+             report_label_explosive_input_validity.grid(row = 3, column = 0)
 
 
 class radius_of_Explosion(App):
     def __init__(self):
         #this is getting the explosive value of the blast, it will be later converted into rough energy for the equation
         self.explosive_value = 0
-        self.explosive_value = self.exposive_value.get_expolsive_size()
+        self.explosive_value = self.explosive_value.get_expolsive_size()
         #this is used in the equation to find the radius of the explosion, it is measuered in secounds is the average time for a nuclear explosion to get to its maxiumum size
         self.time_of_blast = 0.00000008
         #this is also used to find the to find the radius, it is the density of air in kgm^-3
@@ -96,10 +99,10 @@ class radius_of_Explosion(App):
 
     def calculate_radius(self):
         #4.184*10^9, is in joules the amount of energy stored in 1 metric tonne of TNT
-        self.energy = (4.184*10^9)*self.explosive_value
+        energy = (math.pow(4.184*10,9))*float(self.explosive_value)
 
-        self.radius = (self.energy^(1/5) )*(self.time_of_blast^(2/5))*(self.air_density^(-1/5))
-        return self.radius
+        radius = (energy^(1/5) )*(self.time_of_blast^(2/5))*(self.air_density^(-1/5))
+        return radius
 
 if __name__ == "__main__":
     app = App()
