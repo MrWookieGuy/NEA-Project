@@ -1,3 +1,4 @@
+#this imports the relevant libraries to the program.
 import tkinter
 import tkintermapview
 import math
@@ -30,8 +31,9 @@ class App(tkinter.Tk):
         self.explosive_value_submittion = tkinter.Entry(self)
         self.explosive_value_submittion.grid(row = 1,column = 0)
 
-        #setting up exposive value submit button
-        self.explosive_value_submit_button = tkinter.Button(self, text="Submit", command = lambda:validate_data.validate(self,self.explosive_value_submittion))
+        #setting up exposive value submit button &validdation
+        validation = validate_data()
+        self.explosive_value_submit_button = tkinter.Button(self, text="Submit", command = lambda:validation.validate(self.explosive_value_submittion))
         self.explosive_value_submit_button.grid(row=2, column = 0)
         
         #this is setting up the initial values for the map in this program.
@@ -40,7 +42,7 @@ class App(tkinter.Tk):
         self.the_map.set_position(51.51279, -0.09184)
         self.the_map.set_zoom(12)
 
-        
+        #this it to create a map marker, which will bbe used as the position of the nukes that are placed.
         def add_marker_event(coords):
             self.new_marker = self.the_map.set_marker(coords[0], coords[1], text = "Nuke")
 
@@ -49,13 +51,12 @@ class App(tkinter.Tk):
     def give_explosive_size(self):
         return self.exposive_value_submittion.get()
 
+class validate_data():
 
-class validate_data(App):
-    Program_ran =False
     def __init__(self):
-        super().__init__()
+        self.program_ran = False
 
-        
+    #this section of code takes an input and determines whether it is a float, by using a try function, and returning True if it can be a float, and false if it cant    
     def is_float(explosion):
        try:
            float(explosion)
@@ -63,41 +64,69 @@ class validate_data(App):
        except ValueError:
            return False
 
-
     def validate(self,explosive_value_submittion):
-        explosion = explosive_value_submittion.get()
-        if len(explosion) < 20:
-                if validate_data.is_float(explosion) == True or explosion.isnumeric() == True:
-                    explosion = float(explosion)
-                    
-                    if explosion>= 0.01 and explosion <= 1000000.0:
-                        
-                        report_label_explosive_input_validity = tkinter.Label(text="Valid input")
+        #this code gets the input from the user and assigns it to the variable tnt_equivilent for use in the validation of the program
+        tnt_equivilent = explosive_value_submittion.get()
+        #this is the beginning of the validation of the program, limiting the amount of chrarcters that can be used for the input
+        if len(tnt_equivilent) < 20:
+            #this checks to make sure the user input is either a float or  integer, and then if it is, converts the variable to a float
+            if validate_data.is_float(tnt_equivilent) == True or tnt_equivilent.isnumeric() == True:
+                tnt_equivilent = float(tnt_equivilent)
+                #here the program checks to see whether the input is in the accepted range of values
+                if tnt_equivilent>= 0.01 and tnt_equivilent <= 1000000.0:
+                    if self.program_ran == False:
+                        #this reports that the input was valid, the may be removed in later versions
+                        report_label_explosive_input_validity = tkinter.Label(text="Valid input", fg = "black")
                         report_label_explosive_input_validity.grid(row=3,column=0)
-                        
-                        radius_of_the_explosion = radius_of_Explosion(explosion)
+                        #this sends through the size of the explosive and gets the calclated radius from that value
+                        radius_of_the_explosion = radius_of_Explosion(tnt_equivilent)
                         radius_of_the_explosion = radius_of_the_explosion.calculate_radius()
-                        radius_report_label = tkinter.Label(text = "Radius of explosion: "+str(radius_of_the_explosion)+"m")
+                        #this function outputs the radius of the explosion to 4 decimal places
+                        radius_report_label = tkinter.Label(text = "Radius of explosion: "+str(round(radius_of_the_explosion,4))+"m")
                         radius_report_label.grid(row=3,column=1)
-                        
-
+                        self.program_ran = True
                     else:
+                        report_label_explosive_input_validity.config(text="Valid input", fg = "black")
+                        radius_of_the_explosion = radius_of_Explosion(tnt_equivilent)
+                        radius_of_the_explosion = radius_of_the_explosion.calculate_radius()
+                        #this function outputs the radius of the explosion to 4 decimal places
+                        radius_report_label.config(text ="Radius of explosion: "+str(round(radius_of_the_explosion,4))+"m")
+                        
+                #if the tnt_equivilent isnt within range it gives this output, and blanks the radius label if its been used
+                else:
+                    if self.program_ran == False:
                         report_label_explosive_input_validity = tkinter.Label(text="Invalid input, please enter a number in the range.", fg = "red")
                         report_label_explosive_input_validity.grid(row = 3, column = 0)
-                        radius_report_label = tkinter.Label(text = " ")
+                        radius_report_label = tkinter.Label(text = " ", fg = "black")
+                        radius_report_label.grid(row=3,column=1)
+                        self.program_ran = True
+                    else:
+                        report_label_explosive_input_validity.config(text="Invalid input, please enter a number in the range.", fg = "red")
+                        radius_report_label.config(text = " ", fg = "black")
 
-                             
-                else:     
-                     report_label_explosive_input_validity = tkinter.Label(text="Invalid input, please enter a number.", fg = "red")
-                     report_label_explosive_input_validity.grid(row = 3, column = 0)
-                     radius_report_label = tkinter.Label(text=" ")
+            #this is used when a number in integer or float form isnt used and gives the the messages below, as well as blanking the radius report label                 
+            else:
+                if self.program_ran == False:
+                    report_label_explosive_input_validity = tkinter.Label(text="Invalid input, please enter a number.", fg = "red")
+                    report_label_explosive_input_validity.grid(row = 3, column = 0)
+                    radius_report_label = tkinter.Label(text=" ", fg = "black")
+                    radius_report_label.grid(row=3,column=1)
+                    self.program_ran = True
+                else:
+                    report_label_explosive_input_validity.config(text="Invalid input, please enter a number.", fg = "red")
+                    radius_report_label.config(text = " ", fg = "black")
 
-
+        #this is used when the number is too long,and will also blank radius report
         else:
-             report_label_explosive_input_validity = tkinter.Label(text="Invalid input, please enter a number between less than 20 characters long.", fg = "red")
-             report_label_explosive_input_validity.grid(row = 3, column = 0)
-             radius_report_label = tkinter.Label(text=" ")
-
+            if self.program_ran == False:
+                report_label_explosive_input_validity = tkinter.Label(text="Invalid input, please enter a number between less than 20 characters long.", fg = "red")
+                report_label_explosive_input_validity.grid(row = 3, column = 0)
+                radius_report_label = tkinter.Label(text=" ", fg = "black")
+                radius_report_label.grid(row=3,column=1)
+                self.program_ran = True
+            else:
+                report_label_explosive_input_validity.config(text="Invalid input, please enter a number between less than 20 characters long.", fg = "red")
+                radius_report_label.config(text = " ", fg = "black")
 
 class radius_of_Explosion(App):
     #this is also used to find the to find the radius, it is the density of air in kgm^-3
@@ -106,9 +135,9 @@ class radius_of_Explosion(App):
     #this is used in the equation to find the radius of the explosion, it is measuered in secounds is the average time for a nuclear explosion to get to its maxiumum size
     time_of_blast = 0.00000008
     
-    def __init__(self,explosion):
+    def __init__(self,tnt_equivilent):
         #this is getting the explosive value of the blast, it will be later converted into rough energy for the equation
-        self.explosive_value = explosion
+        self.explosive_value = tnt_equivilent
 
     def calculate_radius(self):
         #4.184*10^9, is in joules the amount of energy stored in 1 metric tonne of TNT
