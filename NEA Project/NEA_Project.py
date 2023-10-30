@@ -134,7 +134,7 @@ class radius_of_Explosion(App):
     air_density = 1.293
 
     #this is used in the equation to find the radius of the explosion, it is measuered in secounds is the average time for a nuclear explosion to get to its maxiumum size
-    time_of_blast = 0.00000008
+    time_of_blast = 3.5
     
     def __init__(self,tnt_equivilent):
         #this is getting the explosive value of the blast, it will be later converted into rough energy for the equation
