@@ -1,4 +1,5 @@
 #this imports the relevant libraries to the program.
+from asyncio.windows_events import NULL
 import tkinter
 import tkintermapview
 import math
@@ -9,6 +10,10 @@ user32 = ctypes.windll.user32
 screensizex = str(user32.GetSystemMetrics(0))
 screensizey = str(user32.GetSystemMetrics(1))
 screensize = screensizex+"x"+screensizey
+
+marker_placed = False
+centre_coords = NULL
+the_map = NULL
 
 class App(tkinter.Tk):
     def __init__(self):
@@ -37,16 +42,26 @@ class App(tkinter.Tk):
         self.explosive_value_submit_button.grid(row=2, column = 0)
         
         #this is setting up the initial values for the map in this program.
-        self.the_map = tkintermapview.TkinterMapView(self, width=int(screensizex)*3/4, height=int(screensizey)*8/10, corner_radius=0)
-        self.the_map.place(relx=0.5, rely=0.5, anchor=tkinter.CENTER)
-        self.the_map.set_position(51.51279, -0.09184)
-        self.the_map.set_zoom(12)
+        global the_map 
+        the_map = tkintermapview.TkinterMapView(self, width=int(screensizex)*3/4, height=int(screensizey)*8/10, corner_radius=0)
+        the_map.place(relx=0.5, rely=0.5, anchor=tkinter.CENTER)
+        the_map.set_position(51.51279, -0.09184)
+        the_map.set_zoom(12)
 
         #this it to create a map marker, which will bbe used as the position of the nukes that are placed.
         def add_marker_event(coords):
-            self.new_marker = self.the_map.set_marker(coords[0], coords[1], text = "Nuke")
-
-        self.the_map.add_right_click_menu_command(label = "Place nuke", command= add_marker_event,pass_coords = True)
+            global marker_placed
+            global the_map
+            if marker_placed == False:    
+                self.new_marker = the_map.set_marker(coords[0], coords[1], text = "Nuke")
+                global centre_coords
+                centre_coords = coords
+                marker_placed = True
+            else:
+                pass
+                
+        
+        the_map.add_right_click_menu_command(label = "Place nuke", command= add_marker_event,pass_coords = True)
 
     def give_explosive_size(self):
         return self.exposive_value_submittion.get()
@@ -81,15 +96,25 @@ class validate_data():
             if validate_data.is_float(tnt_equivilent) == True or tnt_equivilent.isnumeric() == True:
                 tnt_equivilent = float(tnt_equivilent)
                 #here the program checks to see whether the input is in the accepted range of values
-                if tnt_equivilent>= 0.01 and tnt_equivilent <= 1000000.0:
+                if tnt_equivilent>= 0.01 and tnt_equivilent <= 100000.0:
                     if self.program_ran == False:
                         #this reports that the input was valid, the may be removed in later versions
                         self.report_label_explosive_input_validity.config(text="Valid Input", fg = "black")
                         #this sends through the size of the explosive and gets the calclated radius from that value
                         radius_of_the_explosion = radius_of_Explosion(tnt_equivilent)
+                        explosion_radius = radius_of_the_explosion
                         radius_of_the_explosion = radius_of_the_explosion.calculate_radius()
+                        
+                        global centre_coords
+                        global the_map
+                        area_of_effect = draw_area_of_effect(radius_of_the_explosion,centre_coords)
+                        area_of_effect.defining_path()
+                        area_of_effect.creating_area_of_effect_display(the_map)
+                        
+
                         #this function outputs the radius of the explosion to 4 decimal places
                         self.radius_report_label.config(text = "Radius of explosion: "+str(round(radius_of_the_explosion,4))+"m")
+                        area_effect = draw_area_of_effect(radius_of_the_explosion,centre_coords)
                         self.program_ran = True
                     else:
                         self.report_label_explosive_input_validity.config(text="Valid input", fg = "black")
@@ -142,10 +167,56 @@ class radius_of_Explosion(App):
 
     def calculate_radius(self):
         #4.184*10^9, is in joules the amount of energy stored in 1 metric tonne of TNT
-        energy = (math.pow(4.184*10,9))*self.explosive_value
-        radius = (energy**(1/5))*(self.time_of_blast**(2/5))*(self.air_density**(-1/5))
+        energy = (4.184*(10**9))*self.explosive_value*1000
+        energy = energy**(1/5)
+        self.time_of_blast = self.time_of_blast**(2/5)
+        self.air_density = self.air_density**(-1/5)
+        radius = energy*self.time_of_blast*self.air_density
         return radius
+    
+class draw_area_of_effect(App):
+    
+    def __init__(self,radius,coordinates):
+       self.array_of_points = [[]]
+       self.radius_of_the_explosion = int(radius)/111000
+       self.coordinates_of_explosion_x = coordinates[0]
+       self.coordinates_of_explosion_y = coordinates[1]
+       
+    def defining_path(self):
+       self.array_of_points[0] = [self.coordinates_of_explosion_x+self.radius_of_the_explosion,self.coordinates_of_explosion_y]
+       for side_number in range (0,6):
+           change_in_x = math.cos(side_number+1)*self.radius_of_the_explosion
+           change_in_y = math.sin(side_number+1)*self.radius_of_the_explosion
+           new_element = [self.coordinates_of_explosion_x+change_in_x,self.coordinates_of_explosion_y+change_in_y]
+           self.array_of_points.append(new_element)
+           
+       self.array_of_points[6] = [self.coordinates_of_explosion_x,self.coordinates_of_explosion_y+self.radius_of_the_explosion]
+       for side_number in range (0,6):
+            change_in_x = math.cos(side_number+1)*self.radius_of_the_explosion
+            change_in_y = math.sin(side_number+1)*self.radius_of_the_explosion
+            new_element = [change_in_x-self.coordinates_of_explosion_x,change_in_y+self.coordinates_of_explosion_y]
+            self.array_of_points.append(new_element)
+       self.array_of_points[12] = [self.coordinates_of_explosion_x-self.radius_of_the_explosion,self.coordinates_of_explosion_y]
+       
+       for side_number in range (0,6):
+           change_in_x = math.cos(side_number+1)*self.radius_of_the_explosion
+           change_in_y = math.sin(side_number+1)*self.radius_of_the_explosion
+           new_element = [change_in_x-self.coordinates_of_explosion_x,change_in_y-self.coordinates_of_explosion_y]
+           self.array_of_points.append(new_element)
+       self.array_of_points[18] = [self.coordinates_of_explosion_x,self.coordinates_of_explosion_y-self.radius_of_the_explosion]
+       
+       for side_number in range (0,6):
+           change_in_x = math.cos(side_number+1)*self.radius_of_the_explosion
+           change_in_y = math.sin(side_number+1)*self.radius_of_the_explosion
+           new_element = [change_in_x+self.coordinates_of_explosion_x,change_in_y-self.coordinates_of_explosion_y]
+           self.array_of_points.append(new_element)
+       #self.array_of_points.append[self.coordinates_of_explosion_x+self.radius_of_the_explosion,self.coordinates_of_explosion_y]
+       print(self.array_of_points)
+           
+    def creating_area_of_effect_display(self,the_map):
+        area_of_effect = the_map.set_path(self.array_of_points)
+
 
 if __name__ == "__main__":
     app = App()
-    app.mainloop())
+    app.mainloop()
