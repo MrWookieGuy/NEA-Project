@@ -1,6 +1,4 @@
 #this imports the relevant libraries to the program.
-
-#this imports the relevant libraries to the program.
 from asyncio.windows_events import NULL
 import tkinter
 import tkintermapview
@@ -211,8 +209,9 @@ class draw_area_of_effect(App):
             change_in_y = math.sin((math.pi/12)*(side_number+1))*self.radius_of_the_explosion
             new_element = [self.coordinates_of_explosion_x-change_in_x,self.coordinates_of_explosion_y+change_in_y]
             self.array_of_points.append(new_element)
-
-        self.array_of_points[12] = [self.coordinates_of_explosion_x-self.radius_of_the_explosion,self.coordinates_of_explosion_y]
+        
+        self.array_of_points[12] = [self.coordinates_of_explosion_x,self.coordinates_of_explosion_y-self.radius_of_the_explosion]
+        #self.array_of_points[12] = [self.coordinates_of_explosion_x-self.radius_of_the_explosion,self.coordinates_of_explosion_y]
        
         for side_number in range (0,6):
             change_in_x = math.cos((math.pi/12)*(side_number+1))*self.radius_of_the_explosion
@@ -220,8 +219,8 @@ class draw_area_of_effect(App):
             new_element = [self.coordinates_of_explosion_x-change_in_x,self.coordinates_of_explosion_y-change_in_y]
             self.array_of_points.append(new_element)
 
-        self.array_of_points[18] = [self.coordinates_of_explosion_x,self.coordinates_of_explosion_y-self.radius_of_the_explosion]
-       
+        #self.array_of_points[18] = [self.coordinates_of_explosion_x,self.coordinates_of_explosion_y-self.radius_of_the_explosion]
+        self.array_of_points[18] = [self.coordinates_of_explosion_x-self.radius_of_the_explosion,self.coordinates_of_explosion_y]
         for side_number in range (0,6):
             change_in_x = math.cos((math.pi/12)*(side_number+1))*self.radius_of_the_explosion
             change_in_y = math.sin((math.pi/12)*(side_number+1))*self.radius_of_the_explosion
@@ -238,4 +237,3 @@ class draw_area_of_effect(App):
 if __name__ == "__main__":
     app = App()
     app.mainloop()
-
