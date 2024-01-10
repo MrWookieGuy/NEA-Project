@@ -1,8 +1,11 @@
+
 #this imports the relevant libraries to the program.
 from asyncio.windows_events import NULL
 import tkinter
 import tkintermapview
 import math
+import csv
+from google import Translator
 
 #this gets the users screen size, so the map is the same ratio size
 import ctypes
@@ -232,7 +235,52 @@ class draw_area_of_effect(App):
     def creating_area_of_effect_display(self,the_map):
         global area_of_effect
         area_of_effect = the_map.set_path(self.array_of_points)
+        
 
+class casulty_count_calculation_and_display():
+    #this instantieates the variables that will be used in this section of the program
+    def __init__(self):
+        self.area_of_country = NULL
+        self.population_of_country = NULL
+        self.population_density_of_country = NULL
+        self.fields = []
+        self.rows = []
+        
+    def retrieve_data_from_csv(self):
+        #this sets the a varible to the name of the file, so it doesn't have to be writen many times
+        filename = "pop density.csv"
+        
+        #reading the csv file
+        with open(filename, "r") as csvfile:
+            #this part is creating a csv reader object, from the csv library
+            csvreader = csv.reader(csvfile)
+            #this is getting the fields of the csv file from the file
+            self.fields = next(csvreader)
+            #this is getting the dat from all of the rows one by one
+            for row in csvreader:
+                self.rows.append(row)
+        print(self.rows)
+        
+    def get_country(self):
+        global centre_coords
+        country = tkintermapview.convert_coordinates_to_country(centre_coords)
+        translator = Translator()
+        country = translator.translate(country)
+        
+
+class searches():
+    def __init__(self,rows,country):
+        self.array_rows = rows
+        self.target = country
+
+    def linear_search(self):
+        for x in range (len(self.rows)):
+            if self.array_rows[[0][x]] == self.target:
+                pass
+            else:
+                print("not found")
+                
+            
 
 if __name__ == "__main__":
     app = App()
