@@ -1,11 +1,10 @@
-
-#this imports the relevant libraries to the program.
+##this imports the relevant libraries to the program.
 from asyncio.windows_events import NULL
 import tkinter
 import tkintermapview
 import math
 import csv
-from google import Translator
+#from google import Translator
 
 #this gets the users screen size, so the map is the same ratio size
 import ctypes
@@ -119,23 +118,33 @@ class validate_data():
                         radius_of_the_explosion = radius_of_Explosion(tnt_equivilent)
                         radius_of_the_explosion = radius_of_the_explosion.calculate_radius()
                         
-                        global centre_coords
-                        global the_map
-                        area_of_effect = draw_area_of_effect(radius_of_the_explosion,centre_coords)
-                        area_of_effect.defining_path()
-                        area_of_effect.creating_area_of_effect_display(the_map)
+                        #this section if defining and then drawing the area of effect onto the map
+                        if marker_placed == True:
+                            global centre_coords
+                            global the_map
+                            area_of_effect = draw_area_of_effect(radius_of_the_explosion,centre_coords)
+                            area_of_effect.defining_path()
+                            area_of_effect.creating_area_of_effect_display(the_map)
                         
 
                         #this function outputs the radius of the explosion to 4 decimal places
                         self.radius_report_label.config(text = "Radius of explosion: "+str(round(radius_of_the_explosion,4))+"m")
                         self.program_ran = True
+                     
+                    #this else statement is used when the program has been run more than one time, and the input is valid, it performs the same functions as above, and in the same fashion
                     else:
                         self.report_label_explosive_input_validity.config(text="Valid input", fg = "black")
+                        
                         #this sends through the size of the explosive and gets the calclated radius from that value
                         radius_of_the_explosion = radius_of_Explosion(tnt_equivilent)
                         radius_of_the_explosion = radius_of_the_explosion.calculate_radius()
+                        
                         #this function outputs the radius of the explosion to 4 decimal places
                         self.radius_report_label.config(text ="Radius of explosion: "+str(round(radius_of_the_explosion,4))+"m")
+                        if marker_placed == True:
+                            area_of_effect = draw_area_of_effect(radius_of_the_explosion,centre_coords)
+                            area_of_effect.defining_path()
+                            area_of_effect.creating_area_of_effect_display(the_map)
                         
                 #if the tnt_equivilent isnt within range it gives this output, and blanks the radius label if its been used
                 else:
@@ -193,43 +202,46 @@ class draw_area_of_effect(App):
         #this defibnes the parameters of the class, these being the array of points around the area of effect, the radius of the explosion, converted into 
         self.array_of_points = [[]]
         self.radius_of_the_explosion = int(radius)/111000
-        self.coordinates_of_explosion_x = coordinates[0]
-        self.coordinates_of_explosion_y = coordinates[1]
+        self.coordinates_of_explosion_x = coordinates[1]
+        self.coordinates_of_explosion_y = coordinates[0]
        
     def defining_path(self):
-        self.array_of_points[0] = [self.coordinates_of_explosion_x+self.radius_of_the_explosion, self.coordinates_of_explosion_y]
+        self.array_of_points[0] = [self.coordinates_of_explosion_y+self.radius_of_the_explosion, self.coordinates_of_explosion_x]
 
+        #+X, +Y
         for side_number in range (0,6):
-            change_in_x = math.cos((math.pi/12)*(side_number+1))*self.radius_of_the_explosion
-            change_in_y = math.sin((math.pi/12)*(side_number+1))*self.radius_of_the_explosion
-            new_element = [self.coordinates_of_explosion_x+change_in_x,self.coordinates_of_explosion_y+change_in_y]
+            change_in_x = math.cos((math.pi/12)*(4-side_number+1))*self.radius_of_the_explosion
+            change_in_y = math.sin((math.pi/12)*(4-side_number+1))*self.radius_of_the_explosion
+            new_element = [self.coordinates_of_explosion_y+change_in_y,self.coordinates_of_explosion_x+change_in_x]
             self.array_of_points.append(new_element)
            
-        self.array_of_points[6] = [self.coordinates_of_explosion_x,self.coordinates_of_explosion_y+self.radius_of_the_explosion]
+        self.array_of_points[6] = [self.coordinates_of_explosion_y,self.coordinates_of_explosion_x+self.radius_of_the_explosion]
 
+        #-y, +x
         for side_number in range (0,6):
             change_in_x = math.cos((math.pi/12)*(side_number+1))*self.radius_of_the_explosion
             change_in_y = math.sin((math.pi/12)*(side_number+1))*self.radius_of_the_explosion
-            new_element = [self.coordinates_of_explosion_x-change_in_x,self.coordinates_of_explosion_y+change_in_y]
+            new_element = [self.coordinates_of_explosion_y-change_in_y,self.coordinates_of_explosion_x+change_in_x]
             self.array_of_points.append(new_element)
         
-        self.array_of_points[12] = [self.coordinates_of_explosion_x,self.coordinates_of_explosion_y-self.radius_of_the_explosion]
-        #self.array_of_points[12] = [self.coordinates_of_explosion_x-self.radius_of_the_explosion,self.coordinates_of_explosion_y]
+        self.array_of_points[12] = [self.coordinates_of_explosion_y-self.radius_of_the_explosion,self.coordinates_of_explosion_x]
        
+        #-y, -x
         for side_number in range (0,6):
-            change_in_x = math.cos((math.pi/12)*(side_number+1))*self.radius_of_the_explosion
-            change_in_y = math.sin((math.pi/12)*(side_number+1))*self.radius_of_the_explosion
-            new_element = [self.coordinates_of_explosion_x-change_in_x,self.coordinates_of_explosion_y-change_in_y]
+            change_in_x = math.cos((math.pi/12)*(4-side_number+1))*self.radius_of_the_explosion
+            change_in_y = math.sin((math.pi/12)*(4-side_number+1))*self.radius_of_the_explosion
+            new_element = [self.coordinates_of_explosion_y-change_in_y,self.coordinates_of_explosion_x-change_in_x]
             self.array_of_points.append(new_element)
 
-        #self.array_of_points[18] = [self.coordinates_of_explosion_x,self.coordinates_of_explosion_y-self.radius_of_the_explosion]
-        self.array_of_points[18] = [self.coordinates_of_explosion_x-self.radius_of_the_explosion,self.coordinates_of_explosion_y]
+        self.array_of_points[18] = [self.coordinates_of_explosion_y,self.coordinates_of_explosion_x-self.radius_of_the_explosion]
+
+        #+y, -x
         for side_number in range (0,6):
             change_in_x = math.cos((math.pi/12)*(side_number+1))*self.radius_of_the_explosion
             change_in_y = math.sin((math.pi/12)*(side_number+1))*self.radius_of_the_explosion
-            new_element = [change_in_x+self.coordinates_of_explosion_x,self.coordinates_of_explosion_y-change_in_y]
+            new_element = [self.coordinates_of_explosion_y+change_in_y,self.coordinates_of_explosion_x-change_in_x]
             self.array_of_points.append(new_element)
-        #self.array_of_points.append[self.coordinates_of_explosion_x+self.radius_of_the_explosion,self.coordinates_of_explosion_y]
+        #self.array_of_points.append[self.coordinates_of_explosion_y+self.radius_of_the_explosion,self.coordinates_of_explosion_x]
         print(self.array_of_points)
            
     def creating_area_of_effect_display(self,the_map):
@@ -259,9 +271,10 @@ class casulty_count_calculation_and_display():
             #this is getting the dat from all of the rows one by one
             for row in csvreader:
                 self.rows.append(row)
-        print(self.rows)
+
         
     def get_country(self):
+        #this program gets the country which the 
         global centre_coords
         country = tkintermapview.convert_coordinates_to_country(centre_coords)
         translator = Translator()
