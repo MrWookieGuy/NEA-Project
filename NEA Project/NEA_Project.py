@@ -1,5 +1,7 @@
 ##this imports the relevant libraries to the program.
+#note the 1st library was automatically put in to make null a vaild data
 from asyncio.windows_events import NULL
+from pickle import NONE
 import tkinter
 import tkintermapview
 import math
@@ -28,7 +30,7 @@ class App(tkinter.Tk):
         self.geometry(screensize)
 
         #setting up label for explosive value input prompt
-        self.explosive_value_label = tkinter.Label(text="Enter your explosive value, in kilotones, between 1t(0.01) and 100Mt(100,000Kt) equivilant")
+        self.explosive_value_label = tkinter.Label(text="Enter your explosive value, in kilotones, between 1t(0.01) and 100Mt(100,000,000Kt) equivilant")
         self.explosive_value_label.grid(row = 0, column = 0)
 
         #setting up the quit button
@@ -52,7 +54,7 @@ class App(tkinter.Tk):
         the_map.set_position(51.51279, -0.09184)
         the_map.set_zoom(12)
 
-        #this it to create a map marker, which will bbe used as the position of the nukes that are placed.
+        #this it to create a map marker, which will be used as the position of the nukes that are placed.
         def add_marker_event(coords):
             global marker_placed
             global the_map
@@ -70,6 +72,8 @@ class App(tkinter.Tk):
         def give_explosive_size(self):
              return self.exposive_value_submittion.get()
 
+
+        #this it the process to reset the map if you rightclick and then choose reset map
         def reset_map(self):
             global the_map
             global marker_placed
@@ -110,7 +114,7 @@ class validate_data():
             if validate_data.is_float(tnt_equivilent) == True or tnt_equivilent.isnumeric() == True:
                 tnt_equivilent = float(tnt_equivilent)
                 #here the program checks to see whether the input is in the accepted range of values
-                if tnt_equivilent>= 0.01 and tnt_equivilent <= 100000.0:
+                if tnt_equivilent>= 0.01 and tnt_equivilent <= 100000000.0:
                     if self.program_ran == False:
                         #this reports that the input was valid, the may be removed in later versions
                         self.report_label_explosive_input_validity.config(text="Valid Input", fg = "black")
@@ -199,16 +203,18 @@ class radius_of_Explosion(App):
 class draw_area_of_effect(App):
     
     def __init__(self,radius,coordinates):
-        #this defibnes the parameters of the class, these being the array of points around the area of effect, the radius of the explosion, converted into 
+        #this defines the parameters of the class, these being the array of points around the area of effect, the radius of the explosion, converted into change in decimal coordinates
         self.array_of_points = [[]]
         self.radius_of_the_explosion = int(radius)/111000
         self.coordinates_of_explosion_x = coordinates[1]
         self.coordinates_of_explosion_y = coordinates[0]
        
     def defining_path(self):
+        #this method creates an array, with tuples of the points on the "circle"
         self.array_of_points[0] = [self.coordinates_of_explosion_y+self.radius_of_the_explosion, self.coordinates_of_explosion_x]
 
-        #+X, +Y
+        #these for statements are making 6 points for each quarter of the side, the comment before states which sector it is. the appendages on their own are for when 
+        #+y, +x
         for side_number in range (0,6):
             change_in_x = math.cos((math.pi/12)*(4-side_number+1))*self.radius_of_the_explosion
             change_in_y = math.sin((math.pi/12)*(4-side_number+1))*self.radius_of_the_explosion
@@ -241,7 +247,7 @@ class draw_area_of_effect(App):
             change_in_y = math.sin((math.pi/12)*(side_number+1))*self.radius_of_the_explosion
             new_element = [self.coordinates_of_explosion_y+change_in_y,self.coordinates_of_explosion_x-change_in_x]
             self.array_of_points.append(new_element)
-        #self.array_of_points.append[self.coordinates_of_explosion_y+self.radius_of_the_explosion,self.coordinates_of_explosion_x]
+        #this print statement is here to allow for easier debugging if errors occur with the layout of the circle.
         print(self.array_of_points)
            
     def creating_area_of_effect_display(self,the_map):
@@ -251,12 +257,17 @@ class draw_area_of_effect(App):
 
 class casulty_count_calculation_and_display():
     #this instantieates the variables that will be used in this section of the program
-    def __init__(self):
+    def __init__(self,radius):
         self.area_of_country = NULL
         self.population_of_country = NULL
         self.population_density_of_country = NULL
         self.fields = []
         self.rows = []
+        self.area_effected = radius**2*math.pi
+        self.row_of_country = NONE
+        self.causlty_count_label = tkinter.Label("")
+        self.causlty_count_label.grid(0,3)
+        
         
     def retrieve_data_from_csv(self):
         #this sets the a varible to the name of the file, so it doesn't have to be writen many times
@@ -273,12 +284,27 @@ class casulty_count_calculation_and_display():
                 self.rows.append(row)
 
         
-    def get_country(self):
-        #this program gets the country which the 
+    def get_country_data(self):
+        #this program gets the country which the arrow is in, it then uses a linear searchto find the country in the csv file. this is done after translating the country to english
         global centre_coords
         country = tkintermapview.convert_coordinates_to_country(centre_coords)
         translator = Translator()
         country = translator.translate(country)
+        search = searches(self.rows,country)
+        row_of_country = search.linear_search()
+        
+        #this section uses the found country and then gets all the relevant data about the country
+        self.population_density_of_country = self.rows[[1][row_of_country]]
+        self.population_of_country = self.rows[[2][row_of_country]]
+        self.area_of_country = self.rows[[3][row_of_country]]
+        
+    def population_effected(self):
+        #this calculates the poulation effected by timing the population density and the area effected. this value is then truncated
+        population_effected = self.area_effected*self.population_density_of_country
+        math.trunc(population_effected)
+        if self.area_effected >=self.area_of_country or population_effected >= self.population_of_country:
+            population_effected = self.population_of_country
+        self.causlty_count_label.config(text= "The casulty count was ~"+population_effected)
         
 
 class searches():
@@ -289,9 +315,9 @@ class searches():
     def linear_search(self):
         for x in range (len(self.rows)):
             if self.array_rows[[0][x]] == self.target:
-                pass
-            else:
-                print("not found")
+                return x   
+            
+                
                 
             
 
