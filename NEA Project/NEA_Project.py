@@ -74,8 +74,9 @@ class App(tkinter.Tk):
             global the_map
             global marker_placed
             global area_of_effect
-            self.new_marker.delete()
-            area_of_effect.delete()
+            if marker_placed == True:
+                self.new_marker.delete()
+                area_of_effect.delete()
             marker_placed = False           
             
         the_map.add_right_click_menu_command(label = "Clear map", command = lambda:reset_map(self))
@@ -277,45 +278,53 @@ class casulty_count_calculation_and_display():
         global centre_coords
         country = tkintermapview.convert_coordinates_to_country(centre_coords[0],centre_coords[1])
         print(country)
+        #this section translates the text from its native language to english
         translator = Translator()
         country = translator.translate(country)
-        searching_for_country = CSV_handling(country)
-        country_array = searching_for_country.linear_search()
-        self.area_of_country = country_array[1]
-        self.population_of_country = int(country_array[2])
-        self.population_density_of_country = float(country_array[3])
+        #this section is for setting up and handeling the csv file
+        searching_for_country = CSV_handling(country.text)
+        country_dictionary = searching_for_country.search_for_country()
         
+        #this is for setting any relevant data from the country
+        self.population_of_country = searching_for_country.get_values(country_dictionary, "Area")
+        self.area_of_country = searching_for_country.get_values(country_dictionary, "Population")
+        self.population_density_of_country = searching_for_country.get_values(country_dictionary,"population density")
         
     def population_effected(self):
         #this calculates the poulation effected by timing the population density and the area effected. this value is then truncated
-        population_effected = self.area_effected*self.population_density_of_country
-        math.trunc(population_effected)
-        if self.area_effected >=self.area_of_country or population_effected >= self.population_of_country:
+        population_effected = (self.area_effected/1000000)*float(self.population_density_of_country[0])
+        if self.area_effected >=float(self.area_of_country[0]) or population_effected >= float(self.population_of_country[0]):
             population_effected = self.population_of_country
-        self.causlty_count_label.config(text= "The casulty count was ~"+population_effected)
+        self.causlty_count_label.config(text= "The casulty count was ~"+str(math.trunc(population_effected)))
         
 
 class CSV_handling():
     def __init__(self,country):
+        #this section is opening, and then copying the data in the csv to a list of dictionaries
         try:
             with open("pop density.csv", "r") as file:
                 csv_reader = csv.DictReader(file)
                 self.data = list(csv_reader)
         except FileNotFoundError:
             raise FileNotFoundError("CSV file not found")
-        self.target = country.text
-
-    def linear_search(self):
-        matches = []
-        print(self.target)
-        for row in range (0,len(self.data)):
-            print(row)
-            if self.data[1] == str(self.target):
-                matches.append(row)
-            else:
-                print("Not found")
         
-        return matches
+        #this is setting the target country for the search
+        self.target = country
+        
+    def search_for_country(self):
+        return list(filter(lambda countries: countries["Country (or dependent territory)"] == self.target, self.data))
+    
+
+    def get_values(self,lst, key):
+        #this gets the values that are in the new filtered list
+        if not lst:
+             return []
+        first_dict = lst[0]
+        if key in first_dict:
+             result  = [first_dict[key]]
+        else:
+             result = []
+        return result    
             
 class saving_data():
     pass
