@@ -1,5 +1,6 @@
 #this imports the relevant libraries to the program.
 from asyncio.windows_events import NULL
+from tkinter import messagebox, ttk
 import tkinter
 import tkintermapview
 import math
@@ -18,10 +19,17 @@ area_of_effect = NULL
 marker_placed = False
 centre_coords = NULL
 the_map = NULL
+location_options = NULL
+nuclear_options = NULL
+
 
 class App(tkinter.Tk):
     def __init__(self):
         super().__init__()
+        
+        #geting relevant global variables
+        global location_options
+        global nuclear_options
 
         #configuring the window
         self.title("Nuclear fallout Simulator")
@@ -35,6 +43,8 @@ class App(tkinter.Tk):
         self.quit_button = tkinter.Button(self, text = "Quit", fg = "red", command = quit)
         self.quit_button.grid(row = 2, column = 1)
 
+
+
         
         #setting up entry slot of explosive value
         self.explosive_value_submittion = tkinter.Entry(self)
@@ -42,7 +52,7 @@ class App(tkinter.Tk):
 
         #setting up exposive value submit button &validdation
         validation = validate_data()
-        self.explosive_value_submit_button = tkinter.Button(self, text="Submit", command = lambda:validation.validate(self.explosive_value_submittion))
+        self.explosive_value_submit_button = tkinter.Button(self, text="Detonate", command = lambda:validation.validate(self.explosive_value_submittion))
         self.explosive_value_submit_button.grid(row=2, column = 0)
         
         #this is setting up the initial values for the map in this program.
@@ -61,14 +71,73 @@ class App(tkinter.Tk):
                 global centre_coords
                 centre_coords = coords
                 marker_placed = True
-            else:
-                pass
-                
-        
-        the_map.add_right_click_menu_command(label = "Place nuke", command= add_marker_event,pass_coords = True)
 
-        def give_explosive_size(self):
-             return self.exposive_value_submittion.get()
+        #this is the set up for the dropdown for nuclear value presets      
+        def display_nuclear_selection():
+            selection = nuclear_options.get()
+            messagebox.showinfo(message=f"The selected value is: {selection}",title="Selection")
+               
+        nuclear_options = ttk.Combobox(
+            state="readonly",
+            values= [
+            "Custom amount",
+            "Davy Crockett - smallest US bomb produced(20t)",
+            "Little Boy - Hiroshima  Bomb(15kt)",
+            "Gadget - Trinity test(20kt)",
+            "Fat Man - Nagasaki bomb(20kt)",
+            "W-76 - common in US & UK SLBM arsenal(100kt)",
+            "Ivy King - Largest pure fission weapon tested  by USA(500kt)",
+            "Ivy Mike - First H-bomb(10.4Mt)",
+            "Castle Bravo - Largest US bomb tested(15Mt)",
+            "Tsar Bomba - largest USSR bomb tested(50Mt)",
+            "Tsar Bomba - largest USSR bomb designed(100Mt)"]
+        )
+        nuclear_options.grid(row = 1, column= 4)
+        display_selection_nuclear_options = ttk.Button(text="Display selection", command=display_nuclear_selection)
+        display_selection_nuclear_options.grid(row = 2, column=4)
+        
+
+
+        #this is the set up for the dropdown for position presets
+        def display_location_selection():
+            selection = location_options.get()
+            messagebox.showinfo(message=f"The selected location is:{selection}", title="Selection")
+        
+        location_options = ttk.Combobox(
+            state="readonly",
+            values=[
+                "Custom location",
+                "Berlin",
+                "Nagasaki",
+                "Hiroshima",
+                "Trinity site",
+                "Moscow",
+                "NYC",
+                "Paris"
+                ]
+            )
+        location_options.grid(row = 1, column= 5)
+        display_location_selection_options = ttk.Button(text = "Display selection", command=display_location_selection)    
+        display_location_selection_options.grid(row = 2, column= 5)
+               
+
+        #this is the code  which creates the help pop-up window
+        def help_popup():
+            popup = tkinter.Tk()
+            popup.wm_title = ("Help popup")
+            help_label_1 = tkinter.Label(popup, text = "To choose the place you wish to detonate the nuke you need to right click on the map,", font = "Helvetica")
+            help_label_1.pack(side = "top", fill = "x", pady=10)
+            help_label_2 = tkinter.Label(popup, text = "this will bring up a menue where you can either place a nuke, reset the map, or copy the co-ordinates of your click(this is done by clicking on the coordinates that appear)", font = "Helvetica")
+            help_label_2.pack(fill = "x", pady=10)
+            help_label_3 = tkinter.Label(popup, text = "Once you have put down a marker, you can enter a amount of TNT equivilent for the explosion. and an approximate casulty count, based on the population density of the country you are in.", font = "Helvetica")
+            help_label_3.pack(fill = "x", pady=10)
+            help_label_4 = tkinter.Label(popup, text = "Then click on detonate, and it will display the area of effect as well as giving the radius of the explosion, ", font = "Helvetica")
+            help_label_4.pack(fill = "x", pady=10)
+            help_label_5 = tkinter.Label(popup, text = "and an approximate casulty count, based on the population density of the country you are in.", font = "Helvetica")
+            help_label_5.pack(fill = "x", pady=10)
+            back_button = tkinter.Button(popup, text = "Okay", command = popup.destroy)
+            back_button.pack()
+            popup.mainloop()
 
         def reset_map(self):
             global the_map
@@ -77,13 +146,64 @@ class App(tkinter.Tk):
             if marker_placed == True:
                 self.new_marker.delete()
                 area_of_effect.delete()
-            marker_placed = False           
+            marker_placed = False
             
+        #this is to add the rightclick commands to the program
+        the_map.add_right_click_menu_command(label="Place nuke", command=add_marker_event, pass_coords=True)    
         the_map.add_right_click_menu_command(label = "Clear map", command = lambda:reset_map(self))
+        
+        #setting up the help button
+        self.help_button = tkinter.Button(self, text = "Help?", command = lambda:help_popup())  
+        self.help_button.grid(row = 0, column=4)
+
+def check_if_explosive_preset():
+    global nuclear_options
+    preset = nuclear_options.get()
+    if preset  == "Davy Crockett - smallest US bomb produced(20t)":
+        return True, 0.02
+    elif preset == "Little Boy - Hiroshima  Bomb":
+        return True, 15
+    elif preset == "Gadget - Trinity test(20kt)":
+        return True, 20
+    elif preset == "Fat Man - Nagasaki bomb(20kt)":
+        return True, 20
+    elif preset == "W-76 - common in US & UK SLBM arsenal(100kt)":
+        return True, 100
+    elif preset == "Ivy King - Largest pure fission weapon tested  by USA(500kt)":
+        return True, 500
+    elif preset == "Ivy Mike - First H-bomb(10.4Mt)":
+        return True, 10400
+    elif preset == "Castle Bravo - Largest US bomb tested(15Mt)":
+        return True, 15000
+    elif preset == "Tsar Bomba - largest USSR bomb tested(50Mt)":
+        return True, 50000
+    elif preset == "Tsar Bomba - largest USSR bomb designed(100Mt)":
+        return True, 100000
+    else:
+        return False, NULL
+
     
+def check_if_location_preset():
+    global location_options
+    preset = location_options.get()
+    if preset == "Berlin":
+        return True, [52.51622358232272, 13.377108044505544]
+    elif preset == "Trinity site":
+        return True, [33.67725713634414, -106.47543730542701]
+    elif preset == "Nagasaki":
+        return True, [32.75078235183071, 129.8681544511882]
+    elif preset == "Hiroshima":
+        return True, [34.39643055690335, 132.45248918400182]
+    elif preset == "Moscow":
+        return True, [55.7540062676168, 37.620150124870854]
+    elif preset == "Paris":
+        return True, [48.86596449522448, 2.3198210567573696]
+    elif preset == "NYC":
+        return True, [40.74785480849046, -73.98509623331023]
+    else:
+        return False, NULL
 
-
-class validate_data():
+class validate_data(App):
 
     def __init__(self):
         self.program_ran = False
@@ -105,8 +225,15 @@ class validate_data():
     def validate(self,explosive_value_submittion):
         #this code gets the input from the user and assigns it to the variable tnt_equivilent for use in the validation of the program
         tnt_equivilent = explosive_value_submittion.get()
+        
+        checking_if_preset = NULL  
+        checking_if_preset = check_if_explosive_preset()
+        if checking_if_preset[0] == True:
+            tnt_equivilent = checking_if_preset[1]
+        print(tnt_equivilent)  
+        
         #this is the beginning of the validation of the program, limiting the amount of chrarcters that can be used for the input
-        if len(tnt_equivilent) < 20:
+        if len(str(tnt_equivilent)) < 20 or checking_if_preset[0] == True:
             #this checks to make sure the user input is either a float or  integer, and then if it is, converts the variable to a float
             if validate_data.is_float(tnt_equivilent) == True or tnt_equivilent.isnumeric() == True:
                 tnt_equivilent = float(tnt_equivilent)
@@ -116,6 +243,8 @@ class validate_data():
                         #this reports that the input was valid, the may be removed in later versions
                         self.report_label_explosive_input_validity.config(text="Valid Input", fg = "black")
                         #this sends through the size of the explosive and gets the calclated radius from that value
+                        
+                        
                         radius_of_the_explosion = radius_of_Explosion(tnt_equivilent)
                         radius_of_the_explosion = radius_of_the_explosion.calculate_radius()
                         
@@ -187,6 +316,8 @@ class validate_data():
             else:
                 self.report_label_explosive_input_validity.config(text="Invalid input, please enter a number between less than 20 characters long.", fg = "red")
                 self.radius_report_label.config(text = " ", fg = "black")
+                
+        
 
 class radius_of_Explosion(App):
     #this is also used to find the to find the radius, it is the density of air in kgm^-3
