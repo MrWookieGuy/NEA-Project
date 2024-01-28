@@ -121,7 +121,7 @@ class App(tkinter.Tk):
         display_location_selection_options.grid(row = 2, column= 5)
                
 
-        #this is the code  which creates the help pop-up window
+        #this is the code  which creates the help pop-up window,
         def help_popup():
             popup = tkinter.Tk()
             popup.wm_title = ("Help popup")
@@ -139,6 +139,8 @@ class App(tkinter.Tk):
             back_button.pack()
             popup.mainloop()
 
+
+        #this is the method to reset the map, and remove all the markers/paths on i
         def reset_map(self):
             global the_map
             global marker_placed
@@ -156,6 +158,7 @@ class App(tkinter.Tk):
         self.help_button = tkinter.Button(self, text = "Help?", command = lambda:help_popup())  
         self.help_button.grid(row = 0, column=4)
 
+    #this is the section for checking the explosive preset dropdown box and returning whether there is a preset, and the relevant explosive value
 def check_if_explosive_preset():
     global nuclear_options
     preset = nuclear_options.get()
@@ -182,7 +185,7 @@ def check_if_explosive_preset():
     else:
         return False, NULL
 
-    
+    #this is the section for checking the location preset dropdown box and returning whether there is a preset, and the relevant coordinates
 def check_if_location_preset():
     global location_options
     preset = location_options.get()
@@ -226,14 +229,14 @@ class validate_data(App):
         #this code gets the input from the user and assigns it to the variable tnt_equivilent for use in the validation of the program
         tnt_equivilent = explosive_value_submittion.get()
         
-        checking_if_preset = NULL  
-        checking_if_preset = check_if_explosive_preset()
-        if checking_if_preset[0] == True:
-            tnt_equivilent = checking_if_preset[1]
+        checking_explosive_preset = NULL  
+        checking_explosive_preset = check_if_explosive_preset()
+        if checking_explosive_preset[0] == True:
+            tnt_equivilent = checking_explosive_preset[1]
         print(tnt_equivilent)  
         
         #this is the beginning of the validation of the program, limiting the amount of chrarcters that can be used for the input
-        if len(str(tnt_equivilent)) < 20 or checking_if_preset[0] == True:
+        if len(str(tnt_equivilent)) < 20 or checking_explosive_preset[0] == True:
             #this checks to make sure the user input is either a float or  integer, and then if it is, converts the variable to a float
             if validate_data.is_float(tnt_equivilent) == True or tnt_equivilent.isnumeric() == True:
                 tnt_equivilent = float(tnt_equivilent)
@@ -252,6 +255,12 @@ class validate_data(App):
                         if marker_placed == True:
                             global centre_coords
                             global the_map
+                            
+
+                            checking_location_preset = check_if_explosive_preset()
+                            if checking_explosive_preset[0] == True:
+                                centre_coords = checking_explosive_preset[1]
+                            
                             area_of_effect = draw_area_of_effect(radius_of_the_explosion,centre_coords)
                             area_of_effect.defining_path()
                             area_of_effect.creating_area_of_effect_display(the_map)
@@ -342,15 +351,17 @@ class radius_of_Explosion(App):
 class draw_area_of_effect(App):
     
     def __init__(self,radius,coordinates):
-        #this defibnes the parameters of the class, these being the array of points around the area of effect, the radius of the explosion, converted into 
+        #this defibnes the parameters of the class, these being the array of points around the area of effect, the radius of the explosion, converted into change in decimal coordinates
         self.array_of_points = [[]]
         self.radius_of_the_explosion = int(radius)/111000
         self.coordinates_of_explosion_x = coordinates[1]
         self.coordinates_of_explosion_y = coordinates[0]
        
     def defining_path(self):
+        #this section of the code is for setting the points of the circle, and then putting them in an array for the method
         self.array_of_points[0] = [self.coordinates_of_explosion_y+self.radius_of_the_explosion, self.coordinates_of_explosion_x]
 
+        #the comments before each loop shows which quarter of the circle is being defined at each section
         #+X, +Y
         for side_number in range (0,6):
             change_in_x = math.cos((math.pi/12)*(4-side_number+1))*self.radius_of_the_explosion
@@ -457,9 +468,6 @@ class CSV_handling():
              result = []
         return result    
             
-class saving_data():
-    pass
-
 if __name__ == "__main__":
     app = App()
     app.mainloop()
