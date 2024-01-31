@@ -127,7 +127,7 @@ class App(tkinter.Tk):
             popup.wm_title = ("Help popup")
             help_label_1 = tkinter.Label(popup, text = "To choose the place you wish to detonate the nuke you need to right click on the map,", font = "Helvetica")
             help_label_1.pack(side = "top", fill = "x", pady=10)
-            help_label_2 = tkinter.Label(popup, text = "this will bring up a menue where you can either place a nuke, reset the map, or copy the co-ordinates of your click(this is done by clicking on the coordinates that appear)", font = "Helvetica")
+            help_label_2 = tkinter.Label(popup, text = "this will bring up a menu where you can either place a nuke, reset the map, or copy the co-ordinates of your click(this is done by clicking on the coordinates that appear)", font = "Helvetica")
             help_label_2.pack(fill = "x", pady=10)
             help_label_3 = tkinter.Label(popup, text = "Once you have put down a marker, you can enter a amount of TNT equivilent for the explosion. and an approximate casulty count, based on the population density of the country you are in.", font = "Helvetica")
             help_label_3.pack(fill = "x", pady=10)
