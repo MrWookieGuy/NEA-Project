@@ -241,7 +241,7 @@ class validate_data(App):
             if validate_data.is_float(tnt_equivilent) == True or tnt_equivilent.isnumeric() == True:
                 tnt_equivilent = float(tnt_equivilent)
                 #here the program checks to see whether the input is in the accepted range of values
-                if tnt_equivilent>= 0.01 and tnt_equivilent <= 100000.0:
+                if tnt_equivilent>= 0.01 and tnt_equivilent <= 1000000.0:
                     if self.program_ran == False:
                         #this reports that the input was valid, the may be removed in later versions
                         self.report_label_explosive_input_validity.config(text="Valid Input", fg = "black")
