@@ -411,7 +411,7 @@ class casulty_count_calculation_and_display():
         self.population_density_of_country = NULL
         self.area_effected = radius**2*math.pi
         self.row_of_country = NULL
-        self.causlty_count_label = tkinter.Label("")
+        self.causlty_count_label = tkinter.Label(text="")
         self.causlty_count_label.grid(row = 0, column = 3)
         
         
